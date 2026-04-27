@@ -25,6 +25,7 @@ function showApp() {
   setTimeout(() => {
     loginScreen.hidden = true;
     appShell.hidden = false;
+    window.scrollTo({ top: 0, behavior: 'instant' });
 
     // Show admin badge and Play tab only for admin
     document.getElementById('adminBadge').hidden = !isAdmin();
