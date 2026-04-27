@@ -37,6 +37,21 @@ html, body {
   justify-content: center;
   background: radial-gradient(ellipse at 50% 0%, #1a3326 0%, var(--bg) 70%);
   padding: 1.5rem;
+  transition: opacity .4s ease;
+}
+
+#loginScreen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#appShell {
+  animation: fadeIn .4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .login-box {

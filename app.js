@@ -20,9 +20,12 @@ function checkAuth() {
 }
 
 function showApp() {
-  loginScreen.hidden = true;
-  appShell.hidden = false;
-  initListeners();
+  loginScreen.classList.add('fade-out');
+  setTimeout(() => {
+    loginScreen.hidden = true;
+    appShell.hidden = false;
+    initListeners();
+  }, 400);
 }
 
 loginForm.addEventListener('submit', e => {
