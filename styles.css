@@ -588,6 +588,57 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .flag-option.selected { border-color: var(--accent); color: var(--text); }
 .flag-option:hover    { border-color: var(--accent-dk); }
 
+/* ── Admin badge ─────────────────────────────────────────────── */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  background: rgba(74,222,128,.15);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .25rem .6rem;
+  border-radius: 20px;
+}
+
+/* ── Maps link ───────────────────────────────────────────────── */
+.maps-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  margin-left: .5rem;
+  color: var(--accent);
+  font-size: .8rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.maps-link:hover { text-decoration: underline; }
+
+/* ── Game delete ─────────────────────────────────────────────── */
+.game-actions {
+  margin-top: .5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.del-game-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  background: none;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: .78rem;
+  padding: .3rem .7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.del-game-btn:hover { background: rgba(239,68,68,.1); }
+
 /* ── Responsive tweaks ───────────────────────────────────────── */
 @media (min-width: 480px) {
   .players-grid { grid-template-columns: repeat(4, 1fr); }

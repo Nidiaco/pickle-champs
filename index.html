@@ -29,9 +29,12 @@
     <!-- Top bar -->
     <header class="top-bar">
       <h1><span>🥒</span> Pickle Champs</h1>
-      <button id="logoutBtn" class="icon-btn" title="Log out">
-        <i class="bi bi-box-arrow-right"></i>
-      </button>
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <span id="adminBadge" class="admin-badge" hidden><i class="bi bi-shield-fill"></i> Admin</span>
+        <button id="logoutBtn" class="icon-btn" title="Log out">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
     </header>
 
     <!-- Tab content -->
@@ -196,7 +199,7 @@
       <button class="tab-btn" data-tab="sessions">
         <i class="bi bi-calendar3"></i>Sessions
       </button>
-      <button class="tab-btn" data-tab="play">
+      <button class="tab-btn" data-tab="play" id="playTabBtn">
         <i class="bi bi-play-circle-fill"></i>Play
       </button>
       <button class="tab-btn" data-tab="stats">
