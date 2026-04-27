@@ -8,8 +8,6 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-  <!-- ── LOGIN ────────────────────────────────────────────────── -->
   <div id="loginScreen">
     <div class="login-box">
       <div class="login-logo">🥒</div>
@@ -23,201 +21,31 @@
     </div>
   </div>
 
-  <!-- ── APP SHELL ─────────────────────────────────────────────── -->
-  <div id="appShell" hidden>
+  <script type="module">
+    const PASSWORD       = 'Champions';
+    const ADMIN_PASSWORD = 'NickAdmin';
 
-    <!-- Top bar -->
-    <header class="top-bar">
-      <h1><span>🥒</span> Pickle Champs</h1>
-      <div style="display:flex;align-items:center;gap:.6rem;">
-        <span id="adminBadge" class="admin-badge" hidden><i class="bi bi-shield-fill"></i> Admin</span>
-        <button id="logoutBtn" class="icon-btn" title="Log out">
-          <i class="bi bi-box-arrow-right"></i>
-        </button>
-      </div>
-    </header>
+    // Already logged in — skip straight to app
+    if (sessionStorage.getItem('pkl_auth') === '1') {
+      window.location.replace('app.html');
+    }
 
-    <!-- Tab content -->
-    <main class="content-area">
-
-      <!-- HOME -->
-      <section id="tab-home" class="tab-panel active">
-        <div class="home-hero">
-          <div class="hero-icon">🏓</div>
-          <h2>Let's play!</h2>
-          <p>Christchurch, New Zealand</p>
-        </div>
-
-        <div class="quick-stats">
-          <div class="stat-card">
-            <div class="stat-num" id="homeStatGames">0</div>
-            <div class="stat-lbl">Games</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-num" id="homeStatPlayers">0</div>
-            <div class="stat-lbl">Players</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-num" id="homeStatSessions">0</div>
-            <div class="stat-lbl">Sessions</div>
-          </div>
-        </div>
-
-        <p class="section-label">Next Session</p>
-        <div id="nextSession"></div>
-      </section>
-
-      <!-- PLAYERS -->
-      <section id="tab-players" class="tab-panel">
-        <h2><i class="bi bi-people-fill"></i> Players</h2>
-
-        <div class="form-card">
-          <h3>Add Player</h3>
-          <form id="addPlayerForm">
-            <label for="playerName">Name</label>
-            <input type="text" id="playerName" placeholder="Player name" maxlength="30" required />
-
-            <label>Country</label>
-            <div class="flag-select" id="flagSelect">
-              <button type="button" class="flag-option selected" data-code="nz">
-                <span class="f-emoji">🇳🇿</span>NZ
-              </button>
-              <button type="button" class="flag-option" data-code="uy">
-                <span class="f-emoji">🇺🇾</span>URU
-              </button>
-              <button type="button" class="flag-option" data-code="mx">
-                <span class="f-emoji">🇲🇽</span>MEX
-              </button>
-              <button type="button" class="flag-option" data-code="ar">
-                <span class="f-emoji">🇦🇷</span>ARG
-              </button>
-              <button type="button" class="flag-option" data-code="au">
-                <span class="f-emoji">🇦🇺</span>AUS
-              </button>
-              <button type="button" class="flag-option" data-code="us">
-                <span class="f-emoji">🇺🇸</span>USA
-              </button>
-              <button type="button" class="flag-option" data-code="gb">
-                <span class="f-emoji">🇬🇧</span>UK
-              </button>
-              <button type="button" class="flag-option" data-code="br">
-                <span class="f-emoji">🇧🇷</span>BRA
-              </button>
-            </div>
-            <!-- Hidden input carrying the selected country code -->
-            <input type="hidden" id="playerCountry" value="nz" />
-
-            <button type="submit" class="btn-add"><i class="bi bi-person-plus-fill"></i> Add Player</button>
-          </form>
-        </div>
-
-        <div id="playerList"></div>
-      </section>
-
-      <!-- SESSIONS -->
-      <section id="tab-sessions" class="tab-panel">
-        <h2><i class="bi bi-calendar3"></i> Sessions</h2>
-
-        <div class="form-card">
-          <h3>New Session</h3>
-          <form id="addSessionForm">
-            <div class="form-row">
-              <div>
-                <label for="sessionDate">Date</label>
-                <input type="date" id="sessionDate" required />
-              </div>
-              <div>
-                <label for="sessionTime">Time</label>
-                <input type="time" id="sessionTime" />
-              </div>
-            </div>
-            <label for="sessionAddress">Address / Location</label>
-            <input type="text" id="sessionAddress" placeholder="e.g. Hagley Park Courts" maxlength="100" />
-            <label for="sessionNotes">Notes (optional)</label>
-            <input type="text" id="sessionNotes" placeholder="Bring extra balls, etc." maxlength="120" />
-            <button type="submit" class="btn-add"><i class="bi bi-plus-circle-fill"></i> Add Session</button>
-          </form>
-        </div>
-
-        <div id="sessionList"></div>
-      </section>
-
-      <!-- PLAY -->
-      <section id="tab-play" class="tab-panel">
-        <h2><i class="bi bi-play-circle-fill"></i> Record Game</h2>
-
-        <div class="form-card">
-          <h3>Session</h3>
-          <select id="sessionSelect">
-            <option value="">— Select session —</option>
-          </select>
-        </div>
-
-        <div class="form-card">
-          <h3>Assign Teams</h3>
-          <p class="hint-text">Tap a player to cycle: unassigned → <strong style="color:var(--t1)">Team 1</strong> → <strong style="color:var(--t2)">Team 2</strong></p>
-          <div class="players-grid" id="playersGrid"></div>
-        </div>
-
-        <div class="form-card">
-          <h3>Score</h3>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.3rem;">
-            <p class="team-label t1">Team 1</p>
-            <p class="team-label t2">Team 2</p>
-          </div>
-          <div class="score-row">
-            <input type="number" id="score1" min="0" max="30" placeholder="0" />
-            <span class="score-divider">–</span>
-            <input type="number" id="score2" min="0" max="30" placeholder="0" />
-          </div>
-          <p class="hint-text">First to 11, win by 2</p>
-          <button id="recordGameBtn" class="btn-record" disabled>
-            <i class="bi bi-check-circle-fill"></i> Record Game
-          </button>
-        </div>
-
-        <h3 style="font-size:.9rem;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.06em;">Recent Games</h3>
-        <div id="recentGames"></div>
-      </section>
-
-      <!-- STATS -->
-      <section id="tab-stats" class="tab-panel">
-        <h2><i class="bi bi-trophy-fill"></i> Leaderboard</h2>
-        <div id="statsContainer"></div>
-      </section>
-
-    </main>
-
-    <!-- Bottom nav -->
-    <nav class="bottom-nav">
-      <button class="tab-btn active" data-tab="home">
-        <i class="bi bi-house-fill"></i>Home
-      </button>
-      <button class="tab-btn" data-tab="players">
-        <i class="bi bi-people-fill"></i>Players
-      </button>
-      <button class="tab-btn" data-tab="sessions">
-        <i class="bi bi-calendar3"></i>Sessions
-      </button>
-      <button class="tab-btn" data-tab="play" id="playTabBtn">
-        <i class="bi bi-play-circle-fill"></i>Play
-      </button>
-      <button class="tab-btn" data-tab="stats">
-        <i class="bi bi-trophy-fill"></i>Stats
-      </button>
-    </nav>
-  </div>
-
-  <script>
-    // Flag picker wiring (runs before app.js module)
-    document.querySelectorAll('.flag-option').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.flag-option').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        document.getElementById('playerCountry').value = btn.dataset.code;
-      });
+    document.getElementById('loginForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const pw = document.getElementById('passwordInput').value;
+      if (pw === ADMIN_PASSWORD) {
+        sessionStorage.setItem('pkl_auth', '1');
+        sessionStorage.setItem('pkl_admin', '1');
+        window.location.href = 'app.html';
+      } else if (pw === PASSWORD) {
+        sessionStorage.setItem('pkl_auth', '1');
+        sessionStorage.removeItem('pkl_admin');
+        window.location.href = 'app.html';
+      } else {
+        document.getElementById('loginError').hidden = false;
+        document.getElementById('passwordInput').value = '';
+      }
     });
   </script>
-  <script type="module" src="app.js"></script>
 </body>
 </html>

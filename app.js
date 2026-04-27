@@ -4,67 +4,23 @@ import {
   onSnapshot, query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ─── Auth ────────────────────────────────────────────────────────────────────
-const PASSWORD       = 'Champions';
-const ADMIN_PASSWORD = 'NickAdmin';
-
-const loginScreen = document.getElementById('loginScreen');
-const appShell    = document.getElementById('appShell');
-const loginError  = document.getElementById('loginError');
-const loginForm   = document.getElementById('loginForm');
-const logoutBtn   = document.getElementById('logoutBtn');
+// ─── Auth guard ──────────────────────────────────────────────────────────────
+if (sessionStorage.getItem('pkl_auth') !== '1') {
+  window.location.replace('index.html');
+}
 
 const isAdmin = () => sessionStorage.getItem('pkl_admin') === '1';
 
-function checkAuth() {
-  if (sessionStorage.getItem('pkl_auth') === '1') showApp();
-}
+// Show admin badge and Play tab only for admin
+document.getElementById('adminBadge').hidden = !isAdmin();
+document.getElementById('playTabBtn').hidden  = !isAdmin();
+document.getElementById('addPlayerCard').hidden  = !isAdmin();
+document.getElementById('addSessionCard').hidden = !isAdmin();
 
-function showApp() {
-  loginScreen.classList.add('fade-out');
-  setTimeout(() => {
-    loginScreen.hidden = true;
-    appShell.hidden = false;
-    window.scrollTo({ top: 0, behavior: 'instant' });
-
-    // Show admin badge and Play tab only for admin
-    document.getElementById('adminBadge').hidden = !isAdmin();
-    document.getElementById('playTabBtn').hidden  = !isAdmin();
-
-    // Hide add forms for non-admins
-    document.getElementById('addPlayerForm').closest('.form-card').hidden = !isAdmin();
-    document.getElementById('addSessionForm').closest('.form-card').hidden = !isAdmin();
-
-    initListeners();
-  }, 400);
-}
-
-loginForm.addEventListener('submit', e => {
-  e.preventDefault();
-  const pw = document.getElementById('passwordInput').value;
-  if (pw === ADMIN_PASSWORD) {
-    sessionStorage.setItem('pkl_auth', '1');
-    sessionStorage.setItem('pkl_admin', '1');
-    loginError.hidden = true;
-    showApp();
-  } else if (pw === PASSWORD) {
-    sessionStorage.setItem('pkl_auth', '1');
-    sessionStorage.removeItem('pkl_admin');
-    loginError.hidden = true;
-    showApp();
-  } else {
-    loginError.hidden = false;
-    document.getElementById('passwordInput').value = '';
-  }
-});
-
-logoutBtn.addEventListener('click', () => {
+document.getElementById('logoutBtn').addEventListener('click', () => {
   sessionStorage.removeItem('pkl_auth');
   sessionStorage.removeItem('pkl_admin');
-  appShell.hidden = true;
-  loginScreen.hidden = false;
-  loginScreen.classList.remove('fade-out');
-  unsubAll();
+  window.location.replace('index.html');
 });
 
 // ─── Tab navigation ──────────────────────────────────────────────────────────
@@ -437,4 +393,4 @@ function playerName(id) {
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 document.getElementById('sessionDate').value = today();
-checkAuth();
+initListeners();
