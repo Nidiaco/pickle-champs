@@ -343,7 +343,15 @@ function renderStats() {
           </tr>`;
         }).join('')}
       </tbody>
-    </table>`;
+    </table>
+    <div class="stats-legend">
+      <span><strong>P</strong> Played</span>
+      <span><strong>W</strong> Wins</span>
+      <span><strong>L</strong> Losses</span>
+      <span><strong>D</strong> Draws</span>
+      <span><strong>W%</strong> Win rate</span>
+      <span><strong>+/-</strong> Point diff</span>
+    </div>`;
 }
 
 // ─── HOME TAB ────────────────────────────────────────────────────────────────

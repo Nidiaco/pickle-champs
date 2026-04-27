@@ -560,6 +560,15 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .stats-table .neg { color: var(--danger); font-weight: 600; }
 .stats-table .flag { font-size: 1.1rem; }
 
+.stats-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem .85rem;
+  margin-top: .75rem;
+  font-size: .78rem;
+  color: var(--muted);
+}
+
 /* ── Country flag select ─────────────────────────────────────── */
 .flag-select {
   display: grid;
