@@ -1,7 +1,7 @@
 import { db } from './firebase-config.js';
 import {
-  collection, doc, addDoc, deleteDoc,
-  onSnapshot, query, orderBy, serverTimestamp
+  collection, doc, addDoc, deleteDoc, updateDoc,
+  onSnapshot, query, orderBy, serverTimestamp, where, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ─── Auth guard ──────────────────────────────────────────────────────────────
@@ -11,11 +11,11 @@ if (sessionStorage.getItem('pkl_auth') !== '1') {
 
 const isAdmin = () => sessionStorage.getItem('pkl_admin') === '1';
 
-// Show admin badge and Play tab only for admin
 document.getElementById('adminBadge').hidden = !isAdmin();
 document.getElementById('playTabBtn').hidden  = !isAdmin();
 document.getElementById('addPlayerCard').hidden  = !isAdmin();
 document.getElementById('addSessionCard').hidden = !isAdmin();
+document.getElementById('seasonResetBtn').hidden = !isAdmin();
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
   sessionStorage.removeItem('pkl_auth');
@@ -144,6 +144,17 @@ function mapsUrl(address) {
   return `https://maps.google.com/?q=${encodeURIComponent(address)}`;
 }
 
+function calendarUrl(session, type) {
+  const [y, m, d] = session.date.split('-');
+  const dateStr = `${y}${m}${d}`;
+  const title = `Pickleball${session.address ? ' @ ' + session.address : ''}`;
+
+  if (type === 'google') {
+    return `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(title)}&dates=${dateStr}/${dateStr}&details=${encodeURIComponent(session.address || '')}`;
+  }
+  return '#';
+}
+
 function renderSessions() {
   renderHome();
   if (!sessions.length) {
@@ -162,9 +173,32 @@ function renderSessions() {
           <i class="bi bi-geo-alt"></i> ${esc(s.address)}
           <a href="${mapsUrl(s.address)}" target="_blank" class="maps-link"><i class="bi bi-map"></i> Maps</a>
         </p>` : ''}
+      ${s.date ? `
+        <div class="cal-links">
+          <a href="${calendarUrl(s, 'google')}" target="_blank" class="cal-btn"><i class="bi bi-calendar-check"></i> Google</a>
+          <a href="#" class="cal-btn apple-cal" data-date="${s.date}" data-addr="${s.address || ''}"><i class="bi bi-calendar-check"></i> Apple</a>
+        </div>` : ''}
       ${s.notes ? `<p class="session-notes">${esc(s.notes)}</p>` : ''}
     </div>
   `).join('');
+
+  // Apple Calendar (generate iCal file)
+  sessionList.querySelectorAll('.apple-cal').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const date = link.dataset.date;
+      const addr = link.dataset.addr;
+      const [y, m, d] = date.split('-');
+      const ical = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Pickle Champs//EN\nBEGIN:VEVENT\nDTSTART:${y}${m}${d}\nDTEND:${y}${m}${d}\nSUMMARY:Pickleball${addr ? ' @ ' + addr : ''}\nDESCRIPTION:${addr || ''}\nEND:VEVENT\nEND:VCALENDAR`;
+      const blob = new Blob([ical], { type: 'text/calendar' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `pickle-champs-${date}.ics`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  });
 
   if (isAdmin()) {
     sessionList.querySelectorAll('.del-session').forEach(btn => {
@@ -242,7 +276,7 @@ recordGameBtn.addEventListener('click', async () => {
   const team2 = Object.entries(teamAssign).filter(([,v]) => v === 2).map(([k]) => k);
 
   await addDoc(collection(db, 'games'), {
-    sessionId, team1, team2, score1: s1, score2: s2, createdAt: serverTimestamp()
+    sessionId, team1, team2, score1: s1, score2: s2, archived: false, createdAt: serverTimestamp()
   });
 
   score1In.value = '';
@@ -253,7 +287,7 @@ recordGameBtn.addEventListener('click', async () => {
 
 function renderRecentGames() {
   renderHome();
-  const recent = games.slice(0, 15);
+  const recent = games.filter(g => !g.archived).slice(0, 15);
   if (!recent.length) {
     recentGames.innerHTML = '<p class="empty-msg">No games recorded yet.</p>';
     return;
@@ -285,20 +319,45 @@ function renderRecentGames() {
 }
 
 // ─── STATS TAB ───────────────────────────────────────────────────────────────
-const statsContainer = document.getElementById('statsContainer');
+const statsContainer  = document.getElementById('statsContainer');
+const chartContainer  = document.getElementById('chartContainer');
+const seasonResetBtn  = document.getElementById('seasonResetBtn');
+
+function calculateStreaks(playerId) {
+  const playerGames = games.filter(g => !g.archived && ([...(g.team1 || []), ...(g.team2 || [])].includes(playerId)));
+  let currentWin = 0, currentLoss = 0, maxWin = 0, maxLoss = 0;
+
+  for (let g of playerGames) {
+    const inTeam1 = g.team1 && g.team1.includes(playerId);
+    const won = (inTeam1 && g.score1 > g.score2) || (!inTeam1 && g.score2 > g.score1);
+
+    if (won) {
+      currentWin++;
+      maxWin = Math.max(maxWin, currentWin);
+      currentLoss = 0;
+    } else {
+      currentLoss++;
+      maxLoss = Math.max(maxLoss, currentLoss);
+      currentWin = 0;
+    }
+  }
+  return { current: currentWin > 0 ? currentWin : -currentLoss, max: maxWin };
+}
 
 function renderStats() {
   if (!players.length) {
     statsContainer.innerHTML = '<p class="empty-msg">No data yet.</p>';
+    chartContainer.innerHTML = '';
     return;
   }
 
+  const activeGames = games.filter(g => !g.archived);
   const stats = {};
   players.forEach(p => {
     stats[p.id] = { name: p.name, country: p.country, played: 0, wins: 0, losses: 0, draws: 0, pf: 0, pa: 0 };
   });
 
-  games.forEach(g => {
+  activeGames.forEach(g => {
     [...(g.team1 || []), ...(g.team2 || [])].forEach(id => { if (stats[id]) stats[id].played++; });
     const winner = g.score1 > g.score2 ? 'team1' : g.score2 > g.score1 ? 'team2' : 'draw';
     (g.team1 || []).forEach(id => {
@@ -317,20 +376,52 @@ function renderStats() {
     });
   });
 
-  const sorted = Object.values(stats).sort((a, b) => {
-    const wr = s => s.played ? s.wins / s.played : 0;
-    return wr(b) - wr(a) || b.wins - a.wins;
-  });
+  const sorted = Object.entries(stats).map(([id, s]) => ({ id, ...s, streak: calculateStreaks(id) }))
+    .sort((a, b) => {
+      const wr = s => s.played ? s.wins / s.played : 0;
+      return wr(b) - wr(a) || b.wins - a.wins;
+    });
 
+  // Chart
+  if (sorted.some(s => s.played > 0)) {
+    const chartData = sorted.filter(s => s.played > 0);
+    const ctx = document.createElement('canvas');
+    chartContainer.innerHTML = '';
+    chartContainer.appendChild(ctx);
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartData.map(s => s.name),
+        datasets: [
+          { label: 'Wins', data: chartData.map(s => s.wins), backgroundColor: '#4ade80' },
+          { label: 'Losses', data: chartData.map(s => s.losses), backgroundColor: '#ef4444' },
+          { label: 'Draws', data: chartData.map(s => s.draws), backgroundColor: '#94a3b8' }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { position: 'top' } },
+        scales: { x: { stacked: true }, y: { stacked: true } }
+      }
+    });
+  } else {
+    chartContainer.innerHTML = '';
+  }
+
+  // Table
   statsContainer.innerHTML = `
     <table class="stats-table">
       <thead><tr>
-        <th>#</th><th>Player</th><th>P</th><th>W</th><th>L</th><th>D</th><th>W%</th><th>+/-</th>
+        <th>#</th><th>Player</th><th>P</th><th>W</th><th>L</th><th>D</th><th>W%</th><th>+/-</th><th>Streak</th>
       </tr></thead>
       <tbody>
         ${sorted.map((s, i) => {
-          const wr   = s.played ? Math.round(s.wins / s.played * 100) : 0;
+          const wr = s.played ? Math.round(s.wins / s.played * 100) : 0;
           const diff = s.pf - s.pa;
+          const streakText = s.streak.current > 0 ? `+${s.streak.current}W` : s.streak.current < 0 ? `${s.streak.current}L` : '—';
           return `<tr class="${i === 0 && s.played > 0 ? 'top-row' : ''}">
             <td>${i === 0 && s.played > 0 ? '🏆' : i + 1}</td>
             <td><span class="flag">${FLAGS[s.country] ?? '🏳️'}</span> ${esc(s.name)}</td>
@@ -340,6 +431,7 @@ function renderStats() {
             <td>${s.draws}</td>
             <td>${wr}%</td>
             <td class="${diff >= 0 ? 'pos' : 'neg'}">${diff >= 0 ? '+' : ''}${diff}</td>
+            <td class="streak-cell">${streakText}</td>
           </tr>`;
         }).join('')}
       </tbody>
@@ -353,6 +445,17 @@ function renderStats() {
       <span><strong>+/-</strong> Point diff</span>
     </div>`;
 }
+
+seasonResetBtn.addEventListener('click', async () => {
+  if (!isAdmin()) return;
+  if (!confirm('Archive all games and start a new season? This cannot be undone.')) return;
+
+  const batch = writeBatch(db);
+  games.filter(g => !g.archived).forEach(g => {
+    batch.update(doc(db, 'games', g.id), { archived: true });
+  });
+  await batch.commit();
+});
 
 // ─── HOME TAB ────────────────────────────────────────────────────────────────
 function renderHome() {
@@ -373,7 +476,9 @@ function renderHome() {
   } else {
     nextEl.innerHTML = '<p class="empty-msg">No upcoming sessions.</p>';
   }
-  document.getElementById('homeStatGames').textContent    = games.length;
+
+  const activeGames = games.filter(g => !g.archived);
+  document.getElementById('homeStatGames').textContent    = activeGames.length;
   document.getElementById('homeStatPlayers').textContent  = players.length;
   document.getElementById('homeStatSessions').textContent = sessions.length;
 }
