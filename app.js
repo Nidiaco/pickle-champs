@@ -45,11 +45,7 @@ let sessions = [];
 let games    = [];
 
 // ─── Flags ───────────────────────────────────────────────────────────────────
-const FLAGS = {
-  nz: '🇳🇿', ar: '🇦🇷', br: '🇧🇷', cl: '🇨🇱', co: '🇨🇴', mx: '🇲🇽', pe: '🇵🇪', uy: '🇺🇾',
-  au: '🇦🇺', cn: '🇨🇳', jp: '🇯🇵', gb: '🇬🇧', de: '🇩🇪', es: '🇪🇸', fr: '🇫🇷', it: '🇮🇹',
-  nl: '🇳🇱', pt: '🇵🇹', us: '🇺🇸'
-};
+const getFlag = (code) => `<span class="fi fi-${code}"></span>`;
 const COUNTRY_NAMES = {
   nz: 'New Zealand', ar: 'Argentina', br: 'Brazil', cl: 'Chile', co: 'Colombia', mx: 'Mexico', pe: 'Peru', uy: 'Uruguay',
   au: 'Australia', cn: 'China', jp: 'Japan', gb: 'United Kingdom', de: 'Germany', es: 'Spain', fr: 'France', it: 'Italy',
@@ -102,7 +98,7 @@ function renderPlayers() {
   }
   playerList.innerHTML = players.map(p => `
     <div class="player-card">
-      <span class="flag">${FLAGS[p.country] ?? '🏳️'}</span>
+      <span class="flag">${getFlag(p.country)}</span>
       <span class="player-name">${esc(p.name)}</span>
       <span class="country-label">${COUNTRY_NAMES[p.country] ?? p.country}</span>
       ${isAdmin() ? `<button class="icon-btn del-player" data-id="${p.id}" title="Remove player"><i class="bi bi-trash3"></i></button>` : ''}
@@ -264,7 +260,7 @@ function renderTeamGrid() {
     const label = t === 1 ? 'Team 1' : t === 2 ? 'Team 2' : 'Tap to assign';
     return `
       <div class="player-tile ${cls}" data-id="${p.id}">
-        <span class="tile-flag">${FLAGS[p.country] ?? '🏳️'}</span>
+        <span class="tile-flag">${getFlag(p.country)}</span>
         <span class="tile-name">${esc(p.name)}</span>
         <span class="tile-team">${label}</span>
       </div>`;
