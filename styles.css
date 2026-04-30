@@ -658,6 +658,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .flag-option.selected { border-color: var(--accent); color: var(--text); }
 .flag-option:hover    { border-color: var(--accent-dk); }
 
+/* ── Hidden attribute ────────────────────────────────────────── */
+[hidden] {
+  display: none !important;
+}
+
 /* ── Admin badge ─────────────────────────────────────────────── */
 .admin-badge {
   display: inline-flex;
