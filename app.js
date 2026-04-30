@@ -12,6 +12,7 @@ if (sessionStorage.getItem('pkl_auth') !== '1') {
 const isAdmin = () => sessionStorage.getItem('pkl_admin') === '1';
 
 document.getElementById('adminBadge').hidden = !isAdmin();
+document.getElementById('playerBadge').hidden = isAdmin();
 document.getElementById('seasonResetBtn').hidden = !isAdmin();
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
