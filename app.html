@@ -63,34 +63,28 @@
             <label for="playerName">Name</label>
             <input type="text" id="playerName" placeholder="Player name" maxlength="30" required />
 
-            <label>Country</label>
-            <div class="flag-select" id="flagSelect">
-              <button type="button" class="flag-option selected" data-code="nz">
-                <span class="f-emoji">🇳🇿</span>NZ
-              </button>
-              <button type="button" class="flag-option" data-code="uy">
-                <span class="f-emoji">🇺🇾</span>URU
-              </button>
-              <button type="button" class="flag-option" data-code="mx">
-                <span class="f-emoji">🇲🇽</span>MEX
-              </button>
-              <button type="button" class="flag-option" data-code="ar">
-                <span class="f-emoji">🇦🇷</span>ARG
-              </button>
-              <button type="button" class="flag-option" data-code="au">
-                <span class="f-emoji">🇦🇺</span>AUS
-              </button>
-              <button type="button" class="flag-option" data-code="us">
-                <span class="f-emoji">🇺🇸</span>USA
-              </button>
-              <button type="button" class="flag-option" data-code="gb">
-                <span class="f-emoji">🇬🇧</span>UK
-              </button>
-              <button type="button" class="flag-option" data-code="br">
-                <span class="f-emoji">🇧🇷</span>BRA
-              </button>
-            </div>
-            <input type="hidden" id="playerCountry" value="nz" />
+            <label for="playerCountry">Country</label>
+            <select id="playerCountry" required>
+              <option value="nz">New Zealand</option>
+              <option value="ar">Argentina</option>
+              <option value="br">Brazil</option>
+              <option value="cl">Chile</option>
+              <option value="co">Colombia</option>
+              <option value="mx">Mexico</option>
+              <option value="pe">Peru</option>
+              <option value="uy">Uruguay</option>
+              <option value="au">Australia</option>
+              <option value="cn">China</option>
+              <option value="jp">Japan</option>
+              <option value="gb">United Kingdom</option>
+              <option value="de">Germany</option>
+              <option value="es">Spain</option>
+              <option value="fr">France</option>
+              <option value="it">Italy</option>
+              <option value="nl">Netherlands</option>
+              <option value="pt">Portugal</option>
+              <option value="us">United States</option>
+            </select>
             <button type="submit" class="btn-add"><i class="bi bi-person-plus-fill"></i> Add Player</button>
           </form>
         </div>

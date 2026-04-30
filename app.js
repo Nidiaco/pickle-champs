@@ -12,9 +12,6 @@ if (sessionStorage.getItem('pkl_auth') !== '1') {
 const isAdmin = () => sessionStorage.getItem('pkl_admin') === '1';
 
 document.getElementById('adminBadge').hidden = !isAdmin();
-document.getElementById('playTabBtn').hidden  = !isAdmin();
-document.getElementById('addPlayerCard').hidden  = !isAdmin();
-document.getElementById('addSessionCard').hidden = !isAdmin();
 document.getElementById('seasonResetBtn').hidden = !isAdmin();
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -48,12 +45,14 @@ let games    = [];
 
 // ─── Flags ───────────────────────────────────────────────────────────────────
 const FLAGS = {
-  nz: '🇳🇿', uy: '🇺🇾', mx: '🇲🇽', ar: '🇦🇷',
-  au: '🇦🇺', us: '🇺🇸', gb: '🇬🇧', br: '🇧🇷'
+  nz: '🇳🇿', ar: '🇦🇷', br: '🇧🇷', cl: '🇨🇱', co: '🇨🇴', mx: '🇲🇽', pe: '🇵🇪', uy: '🇺🇾',
+  au: '🇦🇺', cn: '🇨🇳', jp: '🇯🇵', gb: '🇬🇧', de: '🇩🇪', es: '🇪🇸', fr: '🇫🇷', it: '🇮🇹',
+  nl: '🇳🇱', pt: '🇵🇹', us: '🇺🇸'
 };
 const COUNTRY_NAMES = {
-  nz: 'New Zealand', uy: 'Uruguay', mx: 'Mexico', ar: 'Argentina',
-  au: 'Australia',   us: 'USA',     gb: 'UK',     br: 'Brazil'
+  nz: 'New Zealand', ar: 'Argentina', br: 'Brazil', cl: 'Chile', co: 'Colombia', mx: 'Mexico', pe: 'Peru', uy: 'Uruguay',
+  au: 'Australia', cn: 'China', jp: 'Japan', gb: 'United Kingdom', de: 'Germany', es: 'Spain', fr: 'France', it: 'Italy',
+  nl: 'Netherlands', pt: 'Portugal', us: 'United States'
 };
 
 // ─── Init listeners ──────────────────────────────────────────────────────────
@@ -86,14 +85,11 @@ const playerCountry = document.getElementById('playerCountry');
 
 addPlayerForm.addEventListener('submit', async e => {
   e.preventDefault();
-  if (!isAdmin()) return;
   const name    = playerNameIn.value.trim();
   const country = playerCountry.value;
   if (!name || players.length >= 8) return;
   await addDoc(collection(db, 'players'), { name, country, createdAt: serverTimestamp() });
   addPlayerForm.reset();
-  document.querySelectorAll('.flag-option').forEach(b => b.classList.remove('selected'));
-  document.querySelector('.flag-option[data-code="nz"]').classList.add('selected');
   playerCountry.value = 'nz';
 });
 
@@ -129,7 +125,6 @@ const addSessionForm = document.getElementById('addSessionForm');
 
 addSessionForm.addEventListener('submit', async e => {
   e.preventDefault();
-  if (!isAdmin()) return;
   const date    = document.getElementById('sessionDate').value;
   const time    = document.getElementById('sessionTime').value;
   const address = document.getElementById('sessionAddress').value.trim();
@@ -287,7 +282,6 @@ function renderTeamGrid() {
 }
 
 recordGameBtn.addEventListener('click', async () => {
-  if (!isAdmin()) return;
   const sessionId = sessionSelect.value;
   const s1 = parseInt(score1In.value, 10);
   const s2 = parseInt(score2In.value, 10);
