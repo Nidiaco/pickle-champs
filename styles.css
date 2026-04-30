@@ -709,27 +709,29 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 
 .del-game-btn:hover { background: rgba(239,68,68,.1); }
 
-/* ── Courts Section ──────────────────────────────────────────── */
-.court-slot {
+/* ── Pay2Play Link ───────────────────────────────────────────── */
+.pay2play-link {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  border-radius: var(--radius);
-  padding: 1rem;
-  margin-bottom: .5rem;
-}
-
-.slot-time {
-  display: flex;
-  align-items: center;
+  justify-content: center;
   gap: .5rem;
-  font-weight: 600;
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--accent), #0ea5e9);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radius);
+  font-weight: 700;
+  font-size: .95rem;
+  margin-bottom: 1rem;
+  transition: transform .2s, box-shadow .2s;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.slot-time i { color: var(--accent); font-size: 1.1rem; }
+.pay2play-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
 
 /* ── Rules Section ────────────────────────────────────────────── */
 .rule-card {

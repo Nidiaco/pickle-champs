@@ -16,7 +16,6 @@ document.getElementById('playTabBtn').hidden  = !isAdmin();
 document.getElementById('addPlayerCard').hidden  = !isAdmin();
 document.getElementById('addSessionCard').hidden = !isAdmin();
 document.getElementById('seasonResetBtn').hidden = !isAdmin();
-document.getElementById('addCourtCard').hidden = !isAdmin();
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
   sessionStorage.removeItem('pkl_auth');
@@ -46,7 +45,6 @@ function unsubAll() { unsubs.forEach(fn => fn()); unsubs.length = 0; }
 let players  = [];
 let sessions = [];
 let games    = [];
-let courts   = [];
 
 // ─── Flags ───────────────────────────────────────────────────────────────────
 const FLAGS = {
@@ -76,10 +74,6 @@ function initListeners() {
       games = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderRecentGames();
       renderStats();
-    }),
-    onSnapshot(query(collection(db, 'courtSlots'), orderBy('startTime')), snap => {
-      courts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderCourts();
     })
   );
 }
@@ -530,48 +524,6 @@ function today() {
 function playerName(id) {
   const p = players.find(pl => pl.id === id);
   return p ? p.name : 'Unknown';
-}
-
-// ─── COURTS TAB ──────────────────────────────────────────────────────────────
-const addCourtForm = document.getElementById('addCourtForm');
-const courtList    = document.getElementById('courtList');
-
-if (addCourtForm) {
-  addCourtForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    if (!isAdmin()) return;
-    const startTime = document.getElementById('courtStartTime').value;
-    const endTime   = document.getElementById('courtEndTime').value;
-    if (!startTime || !endTime) return;
-    await addDoc(collection(db, 'courtSlots'), { startTime, endTime, createdAt: serverTimestamp() });
-    addCourtForm.reset();
-  });
-}
-
-function renderCourts() {
-  if (!courts.length) {
-    courtList.innerHTML = '<p class="empty-msg">No available slots this week.</p>';
-    return;
-  }
-  courtList.innerHTML = courts.map(c => `
-    <div class="court-slot">
-      <div class="slot-time">
-        <i class="bi bi-clock-history"></i>
-        <span><strong>${formatTime(c.startTime)}</strong> — <strong>${formatTime(c.endTime)}</strong></span>
-      </div>
-      ${isAdmin() ? `<button class="icon-btn del-court" data-id="${c.id}"><i class="bi bi-trash3"></i></button>` : ''}
-    </div>
-  `).join('');
-
-  if (isAdmin()) {
-    courtList.querySelectorAll('.del-court').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (confirm('Remove this slot?')) {
-          await deleteDoc(doc(db, 'courtSlots', btn.dataset.id));
-        }
-      });
-    });
-  }
 }
 
 // ─── RULES TAB ────────────────────────────────────────────────────────────────

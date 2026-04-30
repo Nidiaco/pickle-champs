@@ -102,6 +102,10 @@
       <section id="tab-sessions" class="tab-panel">
         <h2><i class="bi bi-calendar3"></i> Sessions</h2>
 
+        <a href="https://pay2play.co.nz/bookings/session_select/148" target="_blank" class="pay2play-link">
+          <i class="bi bi-calendar-check"></i> Book Court at Cashmere Club
+        </a>
+
         <div class="form-card" id="addSessionCard">
           <h3>New Session</h3>
           <form id="addSessionForm">
@@ -177,31 +181,6 @@
         <div id="statsContainer"></div>
       </section>
 
-      <!-- COURTS -->
-      <section id="tab-courts" class="tab-panel">
-        <h2><i class="bi bi-calendar2-check"></i> Court Availability</h2>
-        <p class="section-label">Cashmere Club - Available Time Slots</p>
-
-        <div class="form-card" id="addCourtCard" hidden>
-          <h3>Add Available Slot</h3>
-          <form id="addCourtForm">
-            <div class="form-row">
-              <div>
-                <label for="courtStartTime">Start Time</label>
-                <input type="time" id="courtStartTime" required />
-              </div>
-              <div>
-                <label for="courtEndTime">End Time</label>
-                <input type="time" id="courtEndTime" required />
-              </div>
-            </div>
-            <button type="submit" class="btn-add"><i class="bi bi-plus-circle-fill"></i> Add Slot</button>
-          </form>
-        </div>
-
-        <div id="courtList"></div>
-      </section>
-
       <!-- RULES -->
       <section id="tab-rules" class="tab-panel">
         <h2><i class="bi bi-book-fill"></i> Pickleball Rules</h2>
@@ -226,9 +205,6 @@
       </button>
       <button class="tab-btn" data-tab="stats">
         <i class="bi bi-trophy-fill"></i>Stats
-      </button>
-      <button class="tab-btn" data-tab="courts">
-        <i class="bi bi-calendar2-check"></i>Courts
       </button>
       <button class="tab-btn" data-tab="rules">
         <i class="bi bi-book-fill"></i>Rules
