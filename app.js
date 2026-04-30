@@ -437,7 +437,7 @@ function renderStats() {
           const streakText = s.streak.current > 0 ? `+${s.streak.current}W` : s.streak.current < 0 ? `${s.streak.current}L` : '—';
           return `<tr class="${i === 0 && s.played > 0 ? 'top-row' : ''}">
             <td>${i === 0 && s.played > 0 ? '🏆' : i + 1}</td>
-            <td><span class="flag">${FLAGS[s.country] ?? '🏳️'}</span> ${esc(s.name)}</td>
+            <td><span class="flag">${getFlag(s.country)}</span> ${esc(s.name)}</td>
             <td>${s.played}</td>
             <td>${s.wins}</td>
             <td>${s.losses}</td>
