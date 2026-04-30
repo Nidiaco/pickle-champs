@@ -116,7 +116,10 @@
               </div>
             </div>
             <label for="sessionAddress">Address / Location</label>
-            <input type="text" id="sessionAddress" placeholder="e.g. Hagley Park Courts" maxlength="100" />
+            <div style="display:flex;gap:.5rem;">
+              <input type="text" id="sessionAddress" placeholder="e.g. Cashmere Club" maxlength="100" />
+              <button type="button" class="btn-search" id="searchMapsBtn"><i class="bi bi-search"></i> Maps</button>
+            </div>
             <label for="sessionNotes">Notes (optional)</label>
             <input type="text" id="sessionNotes" placeholder="Bring extra balls, etc." maxlength="120" />
             <button type="submit" class="btn-add"><i class="bi bi-plus-circle-fill"></i> Add Session</button>
@@ -174,6 +177,37 @@
         <div id="statsContainer"></div>
       </section>
 
+      <!-- COURTS -->
+      <section id="tab-courts" class="tab-panel">
+        <h2><i class="bi bi-calendar2-check"></i> Court Availability</h2>
+        <p class="section-label">Cashmere Club - Available Time Slots</p>
+
+        <div class="form-card" id="addCourtCard" hidden>
+          <h3>Add Available Slot</h3>
+          <form id="addCourtForm">
+            <div class="form-row">
+              <div>
+                <label for="courtStartTime">Start Time</label>
+                <input type="time" id="courtStartTime" required />
+              </div>
+              <div>
+                <label for="courtEndTime">End Time</label>
+                <input type="time" id="courtEndTime" required />
+              </div>
+            </div>
+            <button type="submit" class="btn-add"><i class="bi bi-plus-circle-fill"></i> Add Slot</button>
+          </form>
+        </div>
+
+        <div id="courtList"></div>
+      </section>
+
+      <!-- RULES -->
+      <section id="tab-rules" class="tab-panel">
+        <h2><i class="bi bi-book-fill"></i> Pickleball Rules</h2>
+        <div id="rulesContainer"></div>
+      </section>
+
     </main>
 
     <!-- Bottom nav -->
@@ -192,6 +226,12 @@
       </button>
       <button class="tab-btn" data-tab="stats">
         <i class="bi bi-trophy-fill"></i>Stats
+      </button>
+      <button class="tab-btn" data-tab="courts">
+        <i class="bi bi-calendar2-check"></i>Courts
+      </button>
+      <button class="tab-btn" data-tab="rules">
+        <i class="bi bi-book-fill"></i>Rules
       </button>
     </nav>
   </div>

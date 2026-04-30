@@ -16,6 +16,7 @@ document.getElementById('playTabBtn').hidden  = !isAdmin();
 document.getElementById('addPlayerCard').hidden  = !isAdmin();
 document.getElementById('addSessionCard').hidden = !isAdmin();
 document.getElementById('seasonResetBtn').hidden = !isAdmin();
+document.getElementById('addCourtCard').hidden = !isAdmin();
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
   sessionStorage.removeItem('pkl_auth');
@@ -45,6 +46,7 @@ function unsubAll() { unsubs.forEach(fn => fn()); unsubs.length = 0; }
 let players  = [];
 let sessions = [];
 let games    = [];
+let courts   = [];
 
 // ─── Flags ───────────────────────────────────────────────────────────────────
 const FLAGS = {
@@ -74,6 +76,10 @@ function initListeners() {
       games = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderRecentGames();
       renderStats();
+    }),
+    onSnapshot(query(collection(db, 'courtSlots'), orderBy('startTime')), snap => {
+      courts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderCourts();
     })
   );
 }
@@ -149,8 +155,19 @@ function calendarUrl(session, type) {
   const dateStr = `${y}${m}${d}`;
   const title = `Pickleball${session.address ? ' @ ' + session.address : ''}`;
 
+  let startTime = '090000';
+  let endTime = '110000';
+  if (session.time) {
+    const [h, min] = session.time.split(':');
+    const endH = (parseInt(h, 10) + 2) % 24;
+    startTime = `${h}${min}00`;
+    endTime = `${String(endH).padStart(2, '0')}${min}00`;
+  }
+
   if (type === 'google') {
-    return `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(title)}&dates=${dateStr}/${dateStr}&details=${encodeURIComponent(session.address || '')}`;
+    const startDateTime = `${dateStr}T${startTime}`;
+    const endDateTime = `${dateStr}T${endTime}`;
+    return `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(title)}&dates=${startDateTime}/${endDateTime}&details=${encodeURIComponent(session.address || '')}`;
   }
   return '#';
 }
@@ -176,7 +193,7 @@ function renderSessions() {
       ${s.date ? `
         <div class="cal-links">
           <a href="${calendarUrl(s, 'google')}" target="_blank" class="cal-btn"><i class="bi bi-calendar-check"></i> Google</a>
-          <a href="#" class="cal-btn apple-cal" data-date="${s.date}" data-addr="${s.address || ''}"><i class="bi bi-calendar-check"></i> Apple</a>
+          <a href="#" class="cal-btn apple-cal" data-date="${s.date}" data-time="${s.time || ''}" data-addr="${s.address || ''}"><i class="bi bi-calendar-check"></i> Apple</a>
         </div>` : ''}
       ${s.notes ? `<p class="session-notes">${esc(s.notes)}</p>` : ''}
     </div>
@@ -188,8 +205,19 @@ function renderSessions() {
       e.preventDefault();
       const date = link.dataset.date;
       const addr = link.dataset.addr;
+      const time = link.dataset.time;
       const [y, m, d] = date.split('-');
-      const ical = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Pickle Champs//EN\nBEGIN:VEVENT\nDTSTART:${y}${m}${d}\nDTEND:${y}${m}${d}\nSUMMARY:Pickleball${addr ? ' @ ' + addr : ''}\nDESCRIPTION:${addr || ''}\nEND:VEVENT\nEND:VCALENDAR`;
+
+      let startTime = '090000';
+      let endTime = '110000';
+      if (time) {
+        const [h, min] = time.split(':');
+        const endH = (parseInt(h, 10) + 2) % 24;
+        startTime = `${h}${min}00`;
+        endTime = `${String(endH).padStart(2, '0')}${min}00`;
+      }
+
+      const ical = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Pickle Champs//EN\nBEGIN:VEVENT\nDTSTART:${y}${m}${d}T${startTime}\nDTEND:${y}${m}${d}T${endTime}\nSUMMARY:Pickleball${addr ? ' @ ' + addr : ''}\nDESCRIPTION:${addr || ''}\nEND:VEVENT\nEND:VCALENDAR`;
       const blob = new Blob([ical], { type: 'text/calendar' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -504,6 +532,90 @@ function playerName(id) {
   return p ? p.name : 'Unknown';
 }
 
+// ─── COURTS TAB ──────────────────────────────────────────────────────────────
+const addCourtForm = document.getElementById('addCourtForm');
+const courtList    = document.getElementById('courtList');
+
+if (addCourtForm) {
+  addCourtForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!isAdmin()) return;
+    const startTime = document.getElementById('courtStartTime').value;
+    const endTime   = document.getElementById('courtEndTime').value;
+    if (!startTime || !endTime) return;
+    await addDoc(collection(db, 'courtSlots'), { startTime, endTime, createdAt: serverTimestamp() });
+    addCourtForm.reset();
+  });
+}
+
+function renderCourts() {
+  if (!courts.length) {
+    courtList.innerHTML = '<p class="empty-msg">No available slots this week.</p>';
+    return;
+  }
+  courtList.innerHTML = courts.map(c => `
+    <div class="court-slot">
+      <div class="slot-time">
+        <i class="bi bi-clock-history"></i>
+        <span><strong>${formatTime(c.startTime)}</strong> — <strong>${formatTime(c.endTime)}</strong></span>
+      </div>
+      ${isAdmin() ? `<button class="icon-btn del-court" data-id="${c.id}"><i class="bi bi-trash3"></i></button>` : ''}
+    </div>
+  `).join('');
+
+  if (isAdmin()) {
+    courtList.querySelectorAll('.del-court').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (confirm('Remove this slot?')) {
+          await deleteDoc(doc(db, 'courtSlots', btn.dataset.id));
+        }
+      });
+    });
+  }
+}
+
+// ─── RULES TAB ────────────────────────────────────────────────────────────────
+const rulesContainer = document.getElementById('rulesContainer');
+
+const pickleBallRules = [
+  { title: 'Scoring', content: 'Games are played to 11 points, win by 2. Only the serving team can score points. A team must win by a 2-point margin.' },
+  { title: 'Serving', content: 'Serve underhand with the paddle below the wrist. The server keeps serving as long as their team wins rallies. When a serving team loses a rally, it becomes the other team\'s turn to serve.' },
+  { title: 'Volley', content: 'A volley is hitting the ball in the air before it bounces. You cannot volley in the kitchen (no-volley zone) on either side of the net.' },
+  { title: 'Kitchen (No-Volley Zone)', content: 'The kitchen is a 7-foot area on both sides of the net. Players cannot volley in the kitchen or stand in it while volleying.' },
+  { title: 'Faults', content: 'A fault occurs when: the ball is hit above waist height during serve, the paddle is above the wrist, the serve lands outside the service box, or the server steps on the baseline.' },
+  { title: 'Double Bounce Rule', content: 'The ball must bounce once on each side after the serve before volleys are allowed. This prevents players from dominating the net immediately after serve.' },
+  { title: 'Net Touch', content: 'If the ball touches the net during a volley and lands in the opponent\'s court, it\'s a legal shot. However, if it touches the net and bounces back to your side, it\'s a fault.' },
+  { title: 'In & Out', content: 'A ball is in if any part of it touches the line. A ball is out if it lands completely beyond the lines. The server must call nets and edges, other players can call balls on their side.' }
+];
+
+function renderRules() {
+  rulesContainer.innerHTML = pickleBallRules.map((rule, i) => `
+    <div class="rule-card">
+      <h3><span class="rule-num">${i + 1}</span> ${rule.title}</h3>
+      <p>${rule.content}</p>
+    </div>
+  `).join('');
+}
+
+// ─── Address Search Button ───────────────────────────────────────────────────
+document.getElementById('searchMapsBtn')?.addEventListener('click', e => {
+  e.preventDefault();
+  const address = document.getElementById('sessionAddress').value.trim();
+  if (!address) { alert('Enter an address first'); return; }
+  window.open(`https://maps.google.com/?q=${encodeURIComponent(address)}`, '_blank');
+});
+
+// ─── Time Helper ──────────────────────────────────────────────────────────────
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  const hour = parseInt(h, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${m} ${ampm}`;
+}
+
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 document.getElementById('sessionDate').value = today();
+renderRules();
 initListeners();
